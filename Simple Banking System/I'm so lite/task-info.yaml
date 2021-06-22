@@ -303,6 +303,9 @@ files:
         def get_balance(self):
             return self.balance
   learner_created: true
+- name: banking/card.s3db
+  visible: true
+  learner_created: true
 feedback_link: https://hyperskill.org/projects/109/stages/593/implement#comment
 status: Unchecked
 record: -1
