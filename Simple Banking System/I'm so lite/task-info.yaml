@@ -1,10 +1,5 @@
 type: edu
 files:
-- name: banking/banking.py
-  visible: true
-  text: |
-    # Write your code here
-  learner_created: false
 - name: tests.py
   visible: false
   text: |
@@ -303,9 +298,20 @@ files:
         def get_balance(self):
             return self.balance
   learner_created: true
+- name: banking/banking.py
+  visible: true
+  text: |
+    # Write your code here
+  learner_created: false
 - name: banking/card.s3db
   visible: true
   learner_created: true
+- name: card.s3db
+  visible: true
+  learner_created: true
 feedback_link: https://hyperskill.org/projects/109/stages/593/implement#comment
-status: Unchecked
-record: -1
+status: Solved
+feedback:
+  message: Congratulations!
+  time: Wed, 23 Jun 2021 03:54:42 UTC
+record: 3

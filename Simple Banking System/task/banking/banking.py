@@ -5,22 +5,6 @@ import sqlite3
 from account import Account
 
 
-def create_table(dbname_, query_):
-    try:
-        connection = sqlite3.connect(dbname_)
-        cursor = connection.cursor()
-        cursor.execute(query_)
-        record = cursor.fetchall()
-        cursor.close()
-        return record
-    except sqlite3.Error as error:
-        print("Error - ", error)
-    finally:
-        if (connection):
-            connection.close()
-    return None
-
-
 def calculate_luhn(number_):
     temp_ = [int(i) for i in number_]
     for _ in range(len(temp_)):
@@ -41,20 +25,17 @@ def generate_card_number():
 
 
 def create_account():
-    global accounts, card_numbers
     while True:
         card_number = generate_card_number()
-        if card_number in card_numbers:
+        if check_number(card_number):
             continue
-        card_numbers.append(card_number)
         acc_ = Account(card_number)
-        accounts.update({card_number: acc_})
         save_acc(acc_)
         print("Your card has been created")
         print("Your card number:")
-        print(card_number)
+        print(acc_.number)
         print("Your card PIN:")
-        print(accounts[card_number].pin)
+        print(acc_.pin)
         print()
         break
 
@@ -65,30 +46,115 @@ def log_into_account():
     print("Enter your PIN:")
     pin_ = input()
     print()
-    load_acc(card_number_, pin_)
-    if card_number_ in card_numbers and pin_ == accounts[card_number_].pin:
-        account_menu(card_number_)
+    acc_ = load_acc(card_number_, pin_)
+    if acc_:
+        account_menu(list(acc_))
     else:
         print("Wrong card number or PIN!")
     print()
 
 
-def account_menu(card_number_):
-    print()
+def account_menu(acc_):
     print("You have successfully logged in!")
     print()
     while True:
         print("1. Balance")
-        print("2. Log out")
+        print("2. Add income")
+        print("3. Do transfer")
+        print("4. Close account")
+        print("5. Log out")
         print("0. Exit")
         choice_ = input()
         print()
         if choice_ == "1":
-            print("Balance: {}".format(accounts[card_number_].balance))
+            print("Balance: {}".format(get_balance(acc_[1])))
+            print()
         elif choice_ == "2":
+            print("Enter income:")
+            income_ = input()
+            add_income(acc_[1], income_)
+        elif choice_ == "3":
+            make_transfer(acc_[1])
+        elif choice_ == "4":
+            del_account(acc_[1])
+            break
+        elif choice_ == "5":
             break
         elif choice_ == "0":
+            print("Bye!")
             exit(0)
+    print()
+
+
+def del_account(num_):
+    connection_ = sqlite3.connect("card.s3db")
+    cursor_ = connection_.cursor()
+    cursor_.execute("DELETE FROM card WHERE number = {}".format(num_))
+    connection_.commit()
+    cursor_.close()
+    print("The account has been closed!")
+    print()
+
+
+def make_transfer(num_):
+    print("Transfer")
+    print("Enter card number:")
+    target_num_ = input()
+
+    if int(calculate_luhn(target_num_[:len(target_num_) -1])) != int(target_num_[-1]):
+        print("Probably you made a mistake in the card number. Please try again!")
+        return
+    if check_number(target_num_) is None:
+        print("Such a card does not exist.")
+        print()
+        return
+    print("Enter how much money you want to transfer:")
+    value_ = input()
+    if get_balance(num_) < int(value_):
+        print("Not enough money!")
+        print()
+        return
+    rem_income(num_, value_)
+    add_income(target_num_, value_)
+    print("Success!")
+    print()
+
+
+def check_number(num_):
+    connection_ = sqlite3.connect("card.s3db")
+    cursor_ = connection_.cursor()
+    cursor_.execute("SELECT * FROM card WHERE number={}".format(num_))
+    result_ = cursor_.fetchone()
+    cursor_.close()
+    return result_
+
+
+def get_balance(num_):
+    connection_ = sqlite3.connect("card.s3db")
+    cursor_ = connection_.cursor()
+    cursor_.execute("SELECT balance FROM card WHERE number={}".format(num_))
+    result_ = cursor_.fetchone()
+    cursor_.close()
+    return int(result_[0])
+
+
+def add_income(num_, value_):
+    connection_ = sqlite3.connect("card.s3db")
+    cursor_ = connection_.cursor()
+    cursor_.execute("UPDATE card SET balance=balance+{} WHERE number={}".format(value_, num_))
+    connection_.commit()
+    cursor_.close()
+    print("Income was added!")
+    print()
+
+
+def rem_income(num_, value_):
+    connection_ = sqlite3.connect("card.s3db")
+    cursor_ = connection_.cursor()
+    cursor_.execute("UPDATE card SET balance=balance-{} WHERE number={}".format(value_, num_))
+    connection_.commit()
+    cursor_.close()
+    print("Income was added!")
     print()
 
 
@@ -105,12 +171,10 @@ def load_acc(number_, pin_):
     connection_ = sqlite3.connect("card.s3db")
     cursor_ = connection_.cursor()
     cursor_.execute("SELECT * FROM card WHERE number={} and pin={}".format(number_, pin_))
-    print(list(cursor_.fetchone()))
+    result_ = cursor_.fetchone()
     cursor_.close()
+    return result_
 
-
-card_numbers = []
-accounts = {}
 
 connection = sqlite3.connect("card.s3db")
 cursor = connection.cursor()
@@ -134,4 +198,5 @@ while True:
     elif choice == "2":
         log_into_account()
     elif choice == "0":
+        print("Bye!")
         break

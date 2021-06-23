@@ -419,6 +419,37 @@ files:
     if __name__ == '__main__':
         BankingSystem('banking.banking').run_tests()
   learner_created: false
+- name: banking/account.py
+  visible: true
+  text: |
+    import random
+
+
+    class Account:
+
+        def __init__(self, number):
+            self.number = number
+            self.pin = self.generate_pin()
+            self.balance = 0
+
+        # custom method
+        @staticmethod
+        def generate_pin():
+            pin_ = ""
+            for _ in range(4):
+                pin_ += str(random.choice(range(0, 10)))
+            return pin_
+
+        def add_deposit(self, value):
+            self.balance += value
+
+        def get_balance(self):
+            return self.balance
+  learner_created: true
 feedback_link: https://hyperskill.org/projects/109/stages/594/implement#comment
-status: Unchecked
+status: Solved
+feedback:
+  message: Well done! You finished the project. Select a new project on <a href="https://hyperskill.org/projects">JetBrains
+    Academy</a> to continue learning.
+  time: Wed, 23 Jun 2021 05:27:03 UTC
 record: -1
